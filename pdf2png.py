@@ -28,55 +28,52 @@ class FileDropTarget(wx.FileDropTarget):
             # Check if valid file type
             if not file.endswith('.pdf'):
                 wx.MessageBox(f'\'{outFile}\' is not a PDF', 'Invalid FIle Type', wx.OK | wx.ICON_ERROR | wx.STAY_ON_TOP)
-                continue
-            
+                continue            
             # Check if outFile already exists
             if glob(DESKTOPPATH + outFile + '*'):
                 choice = wx.MessageBox(f'\'{outFile}\' already exists.  Would you like to overwrite?', 'Info', wx.YES|wx.NO | wx.ICON_QUESTION | wx.STAY_ON_TOP)
                 if choice == wx.NO:
                     continue
-            
             # Write file name in box
             self.obj.WriteText(file + '\n')
 
             # Create image file
             print(f'Converting \'{outFile}\' to png... ', end='', flush=True)
-            try:
-                # TODO Dynamic output path, default=DESKTOPPATH
-                subprocess.Popen(f'\"{POPPATH}\" -png \"{file}\" \"{DESKTOPPATH}{outFile}\"')
-                print('Done')
-            except Exception as e:
-                sys.exit(f'Error\n{e}')
+            # TODO Dynamic output path, default=DESKTOPPATH
+            subprocess.Popen(f'\"{POPPATH}\" -png \"{file}\" \"{DESKTOPPATH}{outFile}\"')
+            print('Done')
         return True
 
- 
 class MainWindow(wx.Frame):
+    
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title, size=(287,280), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
-        self.SetBackgroundColour(wx.WHITE)
- 
-        # Define a Text Control to receive Dropped Files
-        wx.StaticText(self, -1, "PDF(s) to be Converted", (10, 10))
+        self.SetBackgroundColour(wx.Colour(240,255,255))
+        
+        # Text box to receive Dropped Files
+        wx.StaticText(self, -1, 'Drag and drop PDF(s) here', (10, 10))
         self.textBox = wx.TextCtrl(self, -1, "", pos=(10,30), size=(250,150), style=wx.TE_MULTILINE) #, |wx.HSCROLL|wx.TE_READONLY
         dt = FileDropTarget(self.textBox)
-        
         # Link the Drop Target Object to the Text Control
         self.textBox.SetDropTarget(dt)
 
-        # TODO Add output path box with default desktop path
-            # TODO Store user default path, preferences file
-   
+        # Text box for output file path
+        wx.StaticText(self, -1, 'Output file path:', (10, 188))
+        self.textBox2 = wx.TextCtrl(self, -1, "", pos=(10,208), size=(250,22)) #, |wx.HSCROLL|wx.TE_READONLY
+        self.textBox2.WriteText(DESKTOPPATH)
+
+        # TODO Store user default path, preferences file
+
         # Display the Window
         self.Show(True)
  
-    def CloseWindow(self):
+    def close_window(self):
         self.Close()
- 
  
 class MyApp(wx.App):
     def OnInit(self):
         # Declare the Main Application Window
-        frame = MainWindow(None, -1, "PDF to Img")
+        frame = MainWindow(None, -1, "PDF to PNG")
         self.SetTopWindow(frame)
         return True
  
