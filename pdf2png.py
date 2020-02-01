@@ -2,9 +2,10 @@
 
 import os
 import subprocess
-#import sys
+import ctypes
 from glob import glob
 import wx
+
 
 # Poppler is required for this type of file conversion
 POPPATH =       r'C:\Program Files (x86)\Poppler\poppler-0.68.0\bin\pdftoppm.exe'
@@ -12,9 +13,9 @@ HOMEPATH =      'C:' + os.environ["HOMEPATH"]
 DESKTOPPATH =   HOMEPATH + '\\Desktop\\'
 SCRIPTPATH =    HOMEPATH + '\\Documents\\pdf2png\\'
 
-# Define File Drop Target class
+
 class FileDropTarget(wx.FileDropTarget):
-""" Handles the dropped file"""
+    """Handles the dropped file"""
     def __init__(self, obj):
         # Initialize the wxFileDropTarget Object
         wx.FileDropTarget.__init__(self)
@@ -44,7 +45,7 @@ class FileDropTarget(wx.FileDropTarget):
                 continue
 
             # Check if outFile already exists
-            if glob(OUTPATH + outFile + '*'):
+            if glob(OUTPATH + outFile + '*.png'):
                 choice = wx.MessageBox(f'\'{outFile}\' already exists.  Would you like to overwrite?', 'Info', wx.YES|wx.NO | wx.ICON_QUESTION | wx.STAY_ON_TOP)
                 if choice == wx.NO:
                     continue
@@ -60,11 +61,11 @@ class FileDropTarget(wx.FileDropTarget):
 
 
 class MainWindow(wx.Frame):
-    """ Create main app window """
+    """ Creates main app window """
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title, size=(287,280), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
         self.SetBackgroundColour(wx.Colour(240,255,255))
-        wx.EVT_CLOSE(self, self.OnClose)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         # Create Text box to receive Dropped Files
         wx.StaticText(self, -1, 'Drag and drop PDF(s) here', (10, 10))
@@ -89,7 +90,7 @@ class MainWindow(wx.Frame):
  
 
 class MyApp(wx.App):
-""" Creates the app instance"""
+    """ Creates the app instance"""
     def OnInit(self):
         # Declare the Main Application Window
         self.frame = MainWindow(None, -1, "PDF to PNG")
@@ -106,7 +107,7 @@ def save_file(content):
     # Save the output destination
     if not os.path.exists(content):
         content = DESKTOPPATH
-    print(f'Saving {content} to outpath.txt')
+    print(f'Saving path \'{content}\' to outpath.txt')
     with open(SCRIPTPATH + 'outpath.txt', 'w') as f:
         f.write(content)
         f.close()
@@ -116,17 +117,25 @@ def save_file(content):
 def read_saved_path():
     # Get the stored output path from file
     if not os.path.exists(SCRIPTPATH + 'outpath.txt'):
-        print('file does not exist')
+        print('File does not exist, creating outpath.txt')
         with open(SCRIPTPATH + 'outpath.txt', 'w') as f:
             f.write(DESKTOPPATH)
     with open(SCRIPTPATH + 'outpath.txt', 'r') as f:
         outpath = f.read()
-        print(f'outpath : {outpath}')
         f.close()
         return outpath
 
  
+def suppress_terminal():
+    # Hides the terminal window in execution
+    kernel32 = ctypes.WinDLL('kernel32')
+    user32 = ctypes.WinDLL('user32')
+    SW_HIDE = 0
+    hWnd = kernel32.GetConsoleWindow()
+    user32.ShowWindow(hWnd, SW_HIDE)
+
 # Declare the Application and start the Main Loop
+suppress_terminal()
 OUTPATH = read_saved_path()
 app = MyApp(0)
 app.MainLoop()
