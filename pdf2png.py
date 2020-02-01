@@ -1,6 +1,7 @@
 #!python3
 
 import os
+import sys
 import subprocess
 import ctypes
 from glob import glob
@@ -8,11 +9,9 @@ import wx
 
 
 # Poppler is required for this type of file conversion
-POPPATH =       r'C:\Program Files (x86)\Poppler\poppler-0.68.0\bin\pdftoppm.exe'
-HOMEPATH =      'C:' + os.environ["HOMEPATH"]
-DESKTOPPATH =   HOMEPATH + '\\Desktop\\'
-SCRIPTPATH =    HOMEPATH + '\\Documents\\pdf2png\\'
-
+DESKTOPPATH =   'C:' + os.environ["HOMEPATH"] + '\\Desktop\\'
+SCRIPTPATH =    os.path.dirname(os.path.realpath(sys.argv[0])) + '\\'
+POPPATH =       SCRIPTPATH + r'Poppler\poppler-0.68.0\bin\pdftoppm.exe'
 
 class FileDropTarget(wx.FileDropTarget):
     """Handles the dropped file"""
@@ -54,9 +53,9 @@ class FileDropTarget(wx.FileDropTarget):
             self.obj.WriteText(file + '\n')
 
             # Create image file
-            print(f'Converting \'{outFile}\' to png... ', end='', flush=True)
+            #print(f'Converting \'{outFile}\' to png... ', end='', flush=True)
             subprocess.Popen(f'\"{POPPATH}\" -r 300 -png \"{file}\" \"{OUTPATH}{outFile}\"')
-            print('Done')
+            #print('Done')
         return True
 
 
@@ -107,7 +106,7 @@ def save_file(content):
     # Save the output destination
     if not os.path.exists(content):
         content = DESKTOPPATH
-    print(f'Saving path \'{content}\' to outpath.txt')
+    #print(f'Saving path \'{content}\' to outpath.txt')
     with open(SCRIPTPATH + 'outpath.txt', 'w') as f:
         f.write(content)
         f.close()
@@ -117,7 +116,7 @@ def save_file(content):
 def read_saved_path():
     # Get the stored output path from file
     if not os.path.exists(SCRIPTPATH + 'outpath.txt'):
-        print('File does not exist, creating outpath.txt')
+        #print('File does not exist, creating outpath.txt')
         with open(SCRIPTPATH + 'outpath.txt', 'w') as f:
             f.write(DESKTOPPATH)
     with open(SCRIPTPATH + 'outpath.txt', 'r') as f:
