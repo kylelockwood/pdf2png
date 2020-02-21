@@ -99,7 +99,10 @@ class MyApp(wx.App):
 
 def get_path(app):
     # Return the current value in destinationBox
-    return app.frame.destinationBox.GetValue()
+    outPath = app.frame.destinationBox.GetValue()
+    if not outPath.endswith('\\'):
+        outPath += '\\'
+    return outPath
 
 
 def save_file(content):
